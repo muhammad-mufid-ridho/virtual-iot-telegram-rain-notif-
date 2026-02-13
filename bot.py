@@ -1,10 +1,11 @@
 import requests
-from datetime import datetime
+import os
 
-# KONFIGURASI (Ganti dengan Token/ID Anda)
-TELEGRAM_BOT_TOKEN = "8535850688:AAEqjNFbnPAZKb5Mp65o-b7EYDZxfeyQ2yk"
-TELEGRAM_CHAT_ID = "1519188290"
-OPENWEATHER_API_KEY = "d8b203c84ff7ce3821bd0ec5bf079255"
+# Mengambil 'Kunci' dari brankas GitHub Secrets
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_KEY")
+
 LAT = -6.4537731
 LON = 107.041207
 
@@ -12,16 +13,17 @@ def check_weather():
     url = f"https://api.openweathermap.org/data/2.5/weather?lat={LAT}&lon={LON}&appid={OPENWEATHER_API_KEY}&units=metric&lang=id"
     response = requests.get(url).json()
     
-    weather_id = response['weather'][0]['id']
-    is_raining = 200 <= weather_id < 600
+    # Ambil info cuaca
+    weather_desc = response['weather'][0]['description']
+    temp = response['main']['temp']
     
-    if is_raining:
-        msg = f"🌧️ <b>PERINGATAN HUJAN!</b>\n\nKondisi: {response['weather'][0]['description']}\nLokasi: {response['name']}"
-        requests.post(f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage", 
-                      data={'chat_id': TELEGRAM_CHAT_ID, 'text': msg, 'parse_mode': 'HTML'})
-        print("Notifikasi hujan dikirim.")
-    else:
-        print("Cuaca cerah, tidak ada pesan dikirim.")
+    # PESAN TES: Supaya kamu tahu bot ini kerja
+    msg = f"🤖 <b>LAPORAN BOT JONGGOL</b>\n\nKondisi: {weather_desc}\nSuhu: {temp}°C\nStatus: Koneksi Berhasil!"
+
+    # Kirim ke Telegram
+    api_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    requests.post(api_url, data={'chat_id': TELEGRAM_CHAT_ID, 'text': msg, 'parse_mode': 'HTML'})
+    print(f"Berhasil! Cuaca saat ini: {weather_desc}")
 
 if __name__ == "__main__":
     check_weather()
